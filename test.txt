@@ -1,0 +1,21 @@
+void main(int v1) {
+	if(v1 == 2)
+	{
+		if(1 == 1) {
+			raw{
+				/say lame!
+				/say lame!
+			}
+		}
+	};
+	main(2);
+	int test = 5;
+};
+void bob()
+	{
+		raw
+		{
+			/say youlolol
+		}
+	}
+	bob();
