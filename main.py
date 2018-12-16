@@ -1,4 +1,36 @@
+#Add forloops, function return value,   AND IMPORTS <!-- IMPORTANT
+# for imports make so like its
+# import armour_stand
+#or
+#require(armour_stand)
 
+# then to acces a function its
+# armour_stand.set_possition()
+
+#maybe try doing it using scope? or namespace
+#ALSO RECURSION DOESNT WORK SO NEED TO ADD FOR/WHILE LOOPS
+
+
+
+
+
+
+
+# YOU CAN ADD ARRAYS USING ARMORSTANDS
+# have armorstands with scoreboard index set to its index
+# to move to index add/sub the offset then the wanted index is equal to 0
+# then just use the tag @e[type=armour_stand,scorebord_index_min=1,scorebord_index_max=1,tag=array_1] to select the armour stand and then anything can be done to it, read write modify(inline)
+# Using this it would also be possible to expand the array by having a setting up tag/scoreboard to set it to the end of the array
+
+
+#also add something like a break, so that a tick can pass or something (Especialy for while loops)
+
+#also maybe make it so that variables can have types
+
+
+#add (simliar to raw) but something so that python can be added and it compiled
+#add someway to make the current scope ID be inserted into raw{} commands
+#also dynamic arrays can be added with another scoreboard item indicating what it is
 def is_num(test):
     try:
         int(test)
@@ -40,7 +72,7 @@ def add_constant(name,value):
 
 temp_counter=0
     
-class Scope:
+class Scope:##NEED TO ADD COMPILATION TO SCOPE, to reset any variables inital values
     def __init__(self,parent,top=False):
         if top:
             self.id=0
@@ -71,7 +103,7 @@ class Scope:
                 Vars[i.get_var_name_in_scope(val)]=vars_remote[val]
         return Vars
     def __repr__(self):
-        return str(self.childern)+" : "+str(self.variable_scope)+" | "+str(self.function_scope)
+        return str(self.childern)+" - "+str(self.variable_scope)+" - "+str(self.function_scope)
     def get_var_name_in_scope(self,name):
         if not name in  self.variable_scope.keys():
             if self.top:
@@ -112,29 +144,40 @@ bin_op_to_char={ast.Add:"+",
             ast.Module:"%"}
 com_op_to_char={ast.Eq:"=",#MAYBE MAKE SO THAT IT SUPPORTS 9<10<11
                 ast.Gt:">",
-                ast.Lt:"<",}
-def process_equation(op):
+                ast.Lt:"<",
+                ast.NotEq:"N"}#not equal small n is not
+
+def process_equation(op):#Builds equation tree of an equation expresion
     if type(op)==ast.BinOp:
         return [bin_op_to_char[type(op.op)],process_equation(op.left),process_equation(op.right)]
     if type(op)==ast.Compare:
         return [com_op_to_char[type(op.ops[0])],process_equation(op.left),process_equation(op.comparators[0])]
+    if type(op)==ast.UnaryOp:
+        if type(op.op)==ast.Not:
+            return ["n",process_equation(op.operand)]
     if type(op)==ast.Num:
         return ["int",str(op.n)]
     if type(op)==ast.Name:
         return ["var",op.id]
     if type(op)==ast.Call:
         return ["fuc",op.func.id,[process_equation(i)for i in op.args]]
+    
+    print("Unknown op",op)
     return op
-def build_expression(code,output,scope,left=False):#Code produced can be optimised
-    if code[0][0] in list("+-/*%><="):
+def build_expression(code,output,scope,left=False):#Code produced can be optimised    ALSO ADD SUPORT FOR ! != <= >=   
+    if code[0][0] in list("+-/*%Nn><="):
         a=build_expression(code[1],output,scope,True)
+        if code[0]=="n":
+            print(code[0])
+            return a
         b=build_expression(code[2],output,scope)
         if code[0] in "+-/*%":
             output.append("/scoreboard players operation "+a+" "+code[0]+"= "+b)
             return a
         else:
-            output.append("/scoreboard players set temp_0 temp 0")
-            output.append("/execute if score "+a+" "+code[0]+" "+b+" run scoreboard players set temp_0 temp 1")
+            inverted=code[0]=='N'
+            output.append("/scoreboard players set temp_0 temp "+['0','1'][inverted])
+            output.append("/execute if score "+a+" "+code[0].replace("N","=")+" "+b+" run scoreboard players set temp_0 temp "+['1','0'][inverted])
             output.append("/scoreboard players operation "+a+" = temp_0 temp")
             return a
     global temp_counter
@@ -154,20 +197,20 @@ def build_expression(code,output,scope,left=False):#Code produced can be optimis
             return temp+" temp"
         return str(code[1])+" variables"
     if code[0]=="fuc":
-        print(code)
         output.append(call_function(code[1],code[2],scope,True).compile())
         if left:
             output.append("/scoreboard players operation "+temp+" temp = result return_vals")
             return temp+" temp"
         return "result return_vals"
-class Expression:# returns the value in scoreboard     expression return_vals
+class Expression:# returns the value in scoreboard     expression return_vals           
     def __init__(self,expresion,scope):
         self.scope=scope
-        self.code=expresion.replace("= =","==")
+        self.code=expresion.replace("= =","==").replace("!=","noT EquaL").replace("!"," not ").replace("noT EquaL","!=").rstrip(" ").lstrip(" ")
     def __repr__(self):
         return str(self.code)
     
     def compile(self):
+        print(self.scope)
         tree=process_equation(ast.parse(self.code).body[0].value)
         out=[]
         name=build_expression(tree,out,self.scope)
@@ -183,7 +226,7 @@ class function:#if function returns a value it must be stored in scoreboard     
         temp=[]
         for i in params:
             if not i=="":
-                temp.append(i.lstrip("int "))#just for now assuming everything is an int
+                temp.append(i.lstrip("int").lstrip(" ").rstrip(" "))#just for now assuming everything is an int
         params=temp
         declearFunction(name,parent_scope)
         self.parent_scope=parent_scope
@@ -228,7 +271,7 @@ class call_function:
     def __repr__(self):
         return self.function+"("+str(self.args)+")"
 
-    def compile(self):#NEED TO ADD, SETTING ARGS
+    def compile(self):
         code=[]
         func=functions[self.function]
         for index,name in enumerate(self.args):
@@ -237,7 +280,6 @@ class call_function:
             else:
                 code.append("/scoreboard players operation "+func.current_scope.get_var_name_in_scope(func.params[index])+" variables = "+self.scope.get_var_name_in_scope(name)+" variables")
         code.append("/function program:"+scope.get_func_name_in_scope(func.name))
-        print(code)
         return code
 
     
@@ -252,7 +294,33 @@ class raw:
         return self.data
 
 
-    
+
+loop_id=0
+class whileLoop:
+    def __init__(self,info,data,parent_scope):
+        global loop_id
+        loop_id+=1
+        self.id=loop_id
+        self.condition=Expression(")".join("(".join(info.split("(")[1:]).split(")")[:-1]),parent_scope)
+        self.parent_scope=parent_scope
+        self.scope=Scope(parent_scope)
+        self.data=process_code(data[1:-1],self.scope)
+    def __repr__(self):
+        return str(self.data)
+
+    def compile(self):
+        code_name="while_loop_code_"+str(self.id)
+        addSeperetCode(code_name,[code.compile() for code in self.data],False)
+        header_code=[]
+        header_name="while_loop_header_"+str(self.id)
+        header_code.extend(self.condition.compile())
+        header_code.append("/scoreboard players operation temp_while_"+str(self.id)+" temp = expression return_vals")
+        header_code.extend(["/execute if score temp_while_"+str(self.id)+" temp = 1 constants run function program:"+code_name,
+                            "/execute if score temp_while_"+str(self.id)+" temp = 1 constants run function program:"+header_name])
+        addSeperetCode(header_name,header_code,False)
+        return ["/function program:"+header_name]
+
+
 def declearInt(info,scope):#ADD EXPRESTION
     info=info.replace("="," = ").rstrip(";")
     while "  " in info:
@@ -261,17 +329,18 @@ def declearInt(info,scope):#ADD EXPRESTION
     name=info[1]
     value=info[3]
     scope.variable_scope[name]=value
+    print(info,scope)
 
 def declearFunction(name,scope):
     scope.function_scope.append(name)
 
     
-blockFunctions={"if":If,"raw":raw}
+blockFunctions={"if":If,"raw":raw,"while":whileLoop}
 var_delerations={"int":declearInt}
 
 
 #the main processing part of the code, goes through and maps out the process tree 
-def process_code(data,scope):
+def process_code(data,scope):#MAKE SO IT CAN PARSE FUNCTIONS IN HERE
     index=0
     code=[]
     while index!=len(data):
@@ -291,6 +360,7 @@ def process_code(data,scope):
 
         #process variable declerations
         if data[index].split(" ")[0] in var_delerations.keys():
+            
             var_delerations[data[index].split(" ")[0]](data[index],scope)
             index+=1
             continue
@@ -323,17 +393,28 @@ def process_code(data,scope):
 
 function_starters=["void","int"]
 
+#fix so that it can parse like void main(int x){while(x<5){raw{/say hi}x=x+1;}}
+Data=[]
+for line in open("test.txt").read().split("\n"):
+    line=line.split("#")[0]
+    if not line=="":
+        Data.append(line)
 
-Data=[i.rstrip("\r").rstrip("\n").replace("\t","    ").rstrip(" ").lstrip(" ") for i in open("test.txt").read().replace(";",";\n").replace("{","\n{\n").replace("}","\n}\n").split("\n")]#need to remove tabs and double spaces
+pre_data=[i.rstrip("\r").rstrip("\n").replace("\t","    ").rstrip(" ").lstrip(" ") for i in '\n'.join(Data).replace(";",";\n").replace("{","\n{\n").replace("}","\n}\n").split("\n")]#need to remove tabs and double spaces
+Data=[]
+for line in pre_data:
+    if line!="":
+        Data.append(line)
+
 in_function=False
 index_counter=0
 funcData=[]
 code=[]
 
 scope=Scope(None,True)
+print("\n".join(Data))
 
-
-for line in Data:
+for line in Data:#FIX AND UPDATE TO USE process_code()
     if line=="":
         continue
     if line.split(" ")[0] in function_starters:
@@ -353,7 +434,7 @@ for line in Data:
             name=info.split(" ")[1].split("(")[0].rstrip(" ")
             
             parameters=[i.rstrip(" ").lstrip(" ") for i in info.split("(")[1].split(")")[0].split(",")]
-            
+            print(parameters)
             code.append(function(return_type,name,parameters,funcData,scope))
             funcData=[]
             in_function=False
