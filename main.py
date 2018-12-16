@@ -8,7 +8,7 @@
 # armour_stand.set_possition()
 
 #maybe try doing it using scope? or namespace
-#ALSO RECURSION DOESNT WORK SO NEED TO ADD FOR/WHILE LOOPS
+#RECURSION OF FUNCTIONS DONT WORK
 
 
 
