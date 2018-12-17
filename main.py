@@ -396,11 +396,20 @@ function_starters=["void","int"]
 #fix so that it can parse like void main(int x){while(x<5){raw{/say hi}x=x+1;}}
 Data=[]
 for line in open("test.txt").read().split("\n"):
-    line=line.split("#")[0]
+    line=line.split("#")[0].lstrip(" \t")
     if not line=="":
         Data.append(line)
 
-pre_data=[i.rstrip("\r").rstrip("\n").replace("\t","    ").rstrip(" ").lstrip(" ") for i in '\n'.join(Data).replace(";",";\n").replace("{","\n{\n").replace("}","\n}\n").split("\n")]#need to remove tabs and double spaces
+        
+for index,line in enumerate(Data):
+    if line.lstrip(" \t")[0]=="/":
+        Data[index]=line.replace("{","\x01").replace("}","\x02")#hacky fix to parse   raw{/scoreboard players operation result return_vals = @e[type=armor_stand,scores={array=1..1},limit=1] value}
+        
+pre_data=[i.rstrip("\r\n").replace("\t","    ").rstrip(" ").lstrip(" ") for i in '\n'.join(Data).replace(";",";\n").replace("{","\n{\n").replace("}","\n}\n").split("\n")]#need to remove tabs and double spaces
+
+
+pre_data=[line.replace("\x01","{").replace("\x02","}") for line in pre_data]
+
 Data=[]
 for line in pre_data:
     if line!="":
