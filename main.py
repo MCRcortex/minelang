@@ -333,7 +333,7 @@ class whileLoop:
         return ["/function program:"+header_name]
 
 
-def declearInt(info,scope):#ADD EXPRESTION
+def declearInt(info,scope):#ADD EXPRESTION PARSING
     info=info.replace("="," = ").rstrip(";")
     while "  " in info:
         info=info.replace("  "," ")
@@ -344,10 +344,13 @@ def declearInt(info,scope):#ADD EXPRESTION
     
 def declearFunction(name,scope):
     scope.function_scope.append(name)
-
     
+def parentDecleration(info,scope):
+    info=' '.join(info.split(" ")[1:])
+    declearInt(info,scope.parent)
+
 blockFunctions={"if":If,"raw":raw,"while":whileLoop}
-var_delerations={"int":declearInt}
+var_delerations={"int":declearInt, "parent":}
 
 
 #the main processing part of the code, goes through and maps out the process tree 
