@@ -1,21 +1,64 @@
-void main(int v1) {
-	if(v1 == 2)
+
+void generate_array(int count)
+{
+	int counter=0;
+	counter=0;
+	while(counter!=count)
 	{
-		if(1 == 1) {
-			raw{
-				/say lame!
-				/say lame!
-			}
-		}
-	};
-	main(2);
-	int test = 5;
+		raw{
+			/summon minecraft:armor_stand 0 255 0
+			/scoreboard players remove @e[type=armor_stand] array 1
+		};
+		counter=counter+1;
+	}
 };
-void bob()
+
+void read_array(int index)#the in in index is being cut off i think
+{
+	int offset = 0;
+	
+	while (offset!=index)
 	{
-		raw
+		if (index<offset)
 		{
-			/say youlolol
+			raw{
+				/scoreboard players remove @e[type=armor_stand] array 1
+			}
+			offset=offset-1;
+		}
+		if (index>offset)
+		{
+			raw{
+				/scoreboard players add @e[type=armor_stand] array 1
+			}
+			offset=offset+1;
 		}
 	}
-	bob();
+	raw{
+		/scoreboard players operation result return_vals = @e[type=armor_stand,scores={array=1},limit=1] value
+	}
+};
+
+#OPTIMISE TELEPORTATION TP USE CONCEPT FROM https://www.youtube.com/watch?v=gYEa0NGvgHY  + use that concept for index finding
+void main() {
+	raw{
+		
+		/kill @e[type=minecraft:armor_stand]
+		/scoreboard objectives remove array
+		/scoreboard objectives add array dummy
+		/scoreboard objectives remove value
+		/scoreboard objectives add value dummy
+		/scoreboard objectives setdisplay sidebar value
+		#/forceload remove 0 0
+		#/forceload add 0 0
+	};
+	raw{
+		/say yolo
+	};
+	generate_array(500);
+	read_array(314);
+	read_array(1);
+	read_array(2);
+	read_array(3);
+	read_array(4);
+};
