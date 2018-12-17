@@ -8,7 +8,7 @@
 # armour_stand.set_possition()
 
 #maybe try doing it using scope? or namespace
-#RECURSION OF FUNCTIONS DONT WORK
+#ALSO RECURSION DOESNT WORK SO NEED TO ADD FOR/WHILE LOOPS
 
 
 
@@ -122,7 +122,7 @@ class If:
         internal_data=internal_data[1:-1]
         self.condition=Expression(")".join("(".join(info.split("(")[1:]).split(")")[:-1]),parent_scope)
         self.parent_scope=parent_scope
-        self.local_scope=Scope(scope)
+        self.local_scope=Scope(parent_scope)
         self.code=process_code(internal_data,self.local_scope)
     def __repr__(self):
         return "if "+str(self.condition)+" then {"+str(self.code)+"}"
@@ -202,6 +202,7 @@ def build_expression(code,output,scope,left=False):#Code produced can be optimis
             output.append("/scoreboard players operation "+temp+" temp = result return_vals")
             return temp+" temp"
         return "result return_vals"
+
 class Expression:# returns the value in scoreboard     expression return_vals           
     def __init__(self,expresion,scope):
         self.scope=scope
@@ -210,7 +211,7 @@ class Expression:# returns the value in scoreboard     expression return_vals
         return str(self.code)
     
     def compile(self):
-        print(self.scope)
+        
         tree=process_equation(ast.parse(self.code).body[0].value)
         out=[]
         name=build_expression(tree,out,self.scope)
@@ -329,8 +330,7 @@ def declearInt(info,scope):#ADD EXPRESTION
     name=info[1]
     value=info[3]
     scope.variable_scope[name]=value
-    print(info,scope)
-
+    
 def declearFunction(name,scope):
     scope.function_scope.append(name)
 
@@ -412,8 +412,6 @@ funcData=[]
 code=[]
 
 scope=Scope(None,True)
-print("\n".join(Data))
-
 for line in Data:#FIX AND UPDATE TO USE process_code()
     if line=="":
         continue
@@ -434,7 +432,6 @@ for line in Data:#FIX AND UPDATE TO USE process_code()
             name=info.split(" ")[1].split("(")[0].rstrip(" ")
             
             parameters=[i.rstrip(" ").lstrip(" ") for i in info.split("(")[1].split(")")[0].split(",")]
-            print(parameters)
             code.append(function(return_type,name,parameters,funcData,scope))
             funcData=[]
             in_function=False
