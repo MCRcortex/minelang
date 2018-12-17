@@ -134,7 +134,9 @@ class If:
     
     def compile(self):        
         name="if_"+str(self.id)
-        addSeperetCode(name,[i.compile() for i in self.code],False)
+        code=[i.compile() for i in self.code]
+        code.extend(self.local_scope.compile())
+        addSeperetCode(name,code,False)
         add_constant(1,1)
         code=self.condition.compile()
         code.append("/execute if score expression return_vals = 1 constants run function program:"+self.local_scope.get_func_name_in_scope(name))
@@ -249,7 +251,9 @@ class function:#if function returns a value it must be stored in scoreboard     
         return str(self.code)
 
     def compile(self):
-        return [code.compile() for code in self.code]
+        code=[code.compile() for code in self.code]
+        code.extend(self.current_scope.compile())
+        return code
 
 
 class SetVar:
@@ -316,7 +320,9 @@ class whileLoop:
 
     def compile(self):
         code_name="while_loop_code_"+str(self.id)
-        addSeperetCode(code_name,[code.compile() for code in self.data],False)
+        code=[code.compile() for code in self.data]
+        code.extend(self.scope.compile())
+        addSeperetCode(code_name,code,False)
         header_code=[]
         header_name="while_loop_header_"+str(self.id)
         header_code.extend(self.condition.compile())
