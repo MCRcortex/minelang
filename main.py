@@ -71,7 +71,7 @@ def add_constant(name,value):
         consts.append(name)
 
 temp_counter=0
-    
+
 class Scope:##NEED TO ADD COMPILATION TO SCOPE, to reset any variables inital values
     def __init__(self,parent,top=False):
         if top:
