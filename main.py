@@ -112,6 +112,11 @@ class Scope:##NEED TO ADD COMPILATION TO SCOPE, to reset any variables inital va
         return str(self.id)+"_"+name
     def get_func_name_in_scope(self,name):
         return name
+    def compile(self):
+        code=[]
+        for name in self.variable_scope.keys():
+            code.append("/scoreboard players set "+self.get_var_name_in_scope(name)+" variables "+ str(self.variable_scope[name]))
+        return code
 
 ifCounter=0
 class If:
