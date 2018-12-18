@@ -350,7 +350,7 @@ def parentDecleration(info,scope):
     declearInt(info,scope.parent)
 
 blockFunctions={"if":If,"raw":raw,"while":whileLoop}
-var_delerations={"int":declearInt, "parent":}
+var_delerations={"int":declearInt, "parent":parentDecleration}
 
 
 #the main processing part of the code, goes through and maps out the process tree 
