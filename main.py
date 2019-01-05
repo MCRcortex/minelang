@@ -12,8 +12,12 @@
 
 
 
+write=True#Write output to datapack
+output_path="out/"#"code/data/program/functions/"
+main="test.txt"#main starting file
 
 
+#FIX AUTO SETTING VARIABLES
 
 
 # YOU CAN ADD ARRAYS USING ARMORSTANDS
@@ -135,7 +139,9 @@ class If:
     def compile(self):        
         name="if_"+str(self.id)
         code=[i.compile() for i in self.code]
-        code.extend(self.local_scope.compile())
+        
+        code.extend(self.local_scope.compile())#ISSUE
+
         addSeperetCode(name,code,False)
         add_constant(1,1)
         code=self.condition.compile()
@@ -252,7 +258,8 @@ class function:#if function returns a value it must be stored in scoreboard     
 
     def compile(self):
         code=[code.compile() for code in self.code]
-        code.extend(self.current_scope.compile())
+        code.extend(self.current_scope.compile())#ISSUE
+        
         return code
 
 
@@ -321,7 +328,7 @@ class whileLoop:
     def compile(self):
         code_name="while_loop_code_"+str(self.id)
         code=[code.compile() for code in self.data]
-        code.extend(self.scope.compile())
+        code.extend(self.scope.compile())#ISSUE
         addSeperetCode(code_name,code,False)
         header_code=[]
         header_name="while_loop_header_"+str(self.id)
@@ -341,12 +348,13 @@ def declearInt(info,scope):#ADD EXPRESTION PARSING
     name=info[1]
     value=info[3]
     scope.variable_scope[name]=value
+    #MAKE SO THAT IT RETURNS a raw class containing a thing to reset the value
     
 def declearFunction(name,scope):
     scope.function_scope.append(name)
     
 def parentDecleration(info,scope):
-    info=' '.join(info.split(" ")[1:])
+    info=' '.join(info.split(" ")[1:])#remove   parent tag
     declearInt(info,scope.parent)
 
 blockFunctions={"if":If,"raw":raw,"while":whileLoop}
@@ -409,7 +417,7 @@ function_starters=["void","int"]
 
 #fix so that it can parse like void main(int x){while(x<5){raw{/say hi}x=x+1;}}
 Data=[]
-for line in open("test.txt").read().split("\n"):
+for line in open(main).read().split("\n"):
     line=line.split("#")[0].lstrip(" \t")
     if not line=="":
         Data.append(line)
@@ -483,8 +491,8 @@ for variable in Vars:
 
 function_data["prep_function"]=start_function
 
-
-for function in function_data:
-    f=open("code/data/program/functions/"+function+".mcfunction","w")
-    f.write("\n".join([i[1:] for i in function_data[function]]))
-    f.close()
+if write:
+    for function in function_data:
+        f=open(output_path+function+".mcfunction","w")
+        f.write("\n".join([i[1:] for i in function_data[function]]))
+        f.close()
